@@ -8,7 +8,7 @@ class HelpPage extends StatelessWidget {
       appBar: AppBar(
         title: Text('Help Page'),
       ),
-      body: Padding(
+      body: const Padding(
         padding: const EdgeInsets.all(16.0),
         child: SingleChildScrollView(
           child: Column(
