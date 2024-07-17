@@ -4,6 +4,7 @@ import 'dart:convert'; // Import to handle JSON encoding and decoding
 import 'profile.dart';
 import 'help_page.dart'; // Import the help page
 import 'currency_converter.dart'; // Import the currency converter page
+import 'stats/stats.dart';
 
 void main() {
   runApp(ExpenseTrackerApp());
@@ -236,66 +237,7 @@ class _ExpenseTrackerHomeState extends State<ExpenseTrackerHome> {
           ],
         ),
       ),
-      body: Column(
-        children: [
-          Container(
-            padding: EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Total Balance',
-                  style: TextStyle(color: Colors.white, fontSize: 24),
-                ),
-                Text(
-                  '\$${totalBalance.toStringAsFixed(2)}',
-                  style: TextStyle(color: Colors.white, fontSize: 48),
-                ),
-                SizedBox(height: 8),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Income\n\$${income.toStringAsFixed(2)}',
-                      style: TextStyle(color: Colors.green, fontSize: 18),
-                    ),
-                    Text(
-                      'Expenses\n\$${expenses.toStringAsFixed(2)}',
-                      style: TextStyle(color: Color.fromARGB(255, 19, 219, 5), fontSize: 18),
-                    ),
-                  ],
-                )
-              ],
-            ),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Colors.purple, Colors.pink],
-              ),
-              borderRadius: BorderRadius.circular(16),
-            ),
-          ),
-          Expanded(
-            child: ListView.builder(
-              itemCount: transactions.length,
-              itemBuilder: (context, index) {
-                final transaction = transactions[index];
-                return ListTile(
-                  leading: Icon(IconData(transaction['icon'], fontFamily: 'MaterialIcons')),
-                  title: Text(transaction['name']),
-                  subtitle: Text(transaction['date']),
-                  trailing: Text(
-                    transaction['amount'].toStringAsFixed(2),
-                    style: TextStyle(
-                      color: transaction['amount'] < 0 ? Colors.red : Colors.green,
-                    ),
-                  ),
-                  onLongPress: () => _deleteTransaction(index),
-                );
-              },
-            ),
-          ),
-        ],
-      ),
+      body: _buildBodyForCurrentTab(), // Replace with method to build body based on current tab
       floatingActionButton: FloatingActionButton(
         onPressed: () => _startAddNewTransaction(context),
         child: Icon(Icons.add),
@@ -304,6 +246,8 @@ class _ExpenseTrackerHomeState extends State<ExpenseTrackerHome> {
         selectedItemColor: Colors.black,
         unselectedItemColor: Colors.grey,
         elevation: 10.0,
+        currentIndex: _selectedIndex, // Track the current tab index
+        onTap: _onItemTapped, // Function to handle tab tap
         items: const [
           BottomNavigationBarItem(
             label: "Home",
@@ -316,21 +260,113 @@ class _ExpenseTrackerHomeState extends State<ExpenseTrackerHome> {
             backgroundColor: Colors.white,
           ),
           BottomNavigationBarItem(
-            label: "Currency Converter",
-            icon: Icon(Icons.attach_money),
+            label: "Currency",
+            icon: Icon(Icons.currency_exchange),
+            backgroundColor: Colors.white,
+          ),
+          BottomNavigationBarItem(
+            label: "Stats",
+            icon: Icon(Icons.stacked_bar_chart),
             backgroundColor: Colors.white,
           ),
         ],
-        onTap: (index) {
-          if (index == 2) { // Index 2 represents Currency Converter button
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => CurrencyConverter()),
-            );
-          }
-        },
       ),
     );
+  }
+
+  // Method to build the body based on the current tab index
+  Widget _buildBodyForCurrentTab() {
+    switch (_selectedIndex) {
+      case 0:
+        return _buildHomeTab();
+      case 1:
+        // Add settings tab content here
+        return Container(
+          color: Colors.blueGrey,
+          child: Center(
+            child: Text('Settings Tab Content'),
+          ),
+        );
+      case 2:
+        // Add currency converter tab content here
+        return CurrencyConverter();
+      case 3:
+        // Add stats tab content here
+        return const StatScreen();
+      default:
+        return _buildHomeTab();
+    }
+  }
+
+  Widget _buildHomeTab() {
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Colors.purple, Colors.pink],
+            ),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Total Balance',
+                style: TextStyle(color: Colors.white, fontSize: 24),
+              ),
+              Text(
+                '\$${totalBalance.toStringAsFixed(2)}',
+                style: const TextStyle(color: Colors.white, fontSize: 48),
+              ),
+              SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Income\n\$${income.toStringAsFixed(2)}',
+                    style: TextStyle(color: Colors.green, fontSize: 18),
+                  ),
+                  Text(
+                    'Expenses\n\$${expenses.toStringAsFixed(2)}',
+                    style: TextStyle(color: Color.fromARGB(255, 19, 219, 5), fontSize: 18),
+                  ),
+                ],
+              )
+            ],
+          ),
+        ),
+        Expanded(
+          child: ListView.builder(
+            itemCount: transactions.length,
+            itemBuilder: (context, index) {
+              final transaction = transactions[index];
+              return ListTile(
+                leading: Icon(IconData(transaction['icon'], fontFamily: 'MaterialIcons')),
+                title: Text(transaction['name']),
+                subtitle: Text(transaction['date']),
+                trailing: Text(
+                  transaction['amount'].toStringAsFixed(2),
+                  style: TextStyle(
+                    color: transaction['amount'] < 0 ? Colors.red : Colors.green,
+                  ),
+                ),
+                onLongPress: () => _deleteTransaction(index),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  int _selectedIndex = 0;
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
   }
 
   void _startAddNewTransaction(BuildContext ctx) {
@@ -380,7 +416,6 @@ class _NewTransactionState extends State<NewTransaction> {
   void _showIconSelectionDialog(BuildContext context) {
     showDialog(
       context: context,
-      
       builder: (context) {
         return AlertDialog(
           title: Text('Select Icon'),

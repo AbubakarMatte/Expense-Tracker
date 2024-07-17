@@ -97,9 +97,11 @@ class _CurrencyConverterState extends State<CurrencyConverter> {
                 ),
               SizedBox(height: 20),
               ElevatedButton(
-                onPressed: () => Navigator.of(context).pop(),
+                onPressed: () {
+                  Navigator.of(context).popUntil((route) => route.isFirst);
+                },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.grey[600],
+                  backgroundColor: Colors.white,
                   padding: EdgeInsets.symmetric(horizontal: 50, vertical: 15),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
